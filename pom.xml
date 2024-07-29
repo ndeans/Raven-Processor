@@ -6,7 +6,7 @@
 
     <groupId>us.deans.raven</groupId>
     <artifactId>Raven-Processor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -29,5 +29,9 @@
             <version>${mongodb.driver.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <finalName>Raven-Processor</finalName>
+    </build>
 
 </project>
