@@ -1,4 +1,4 @@
-package us.deans.raven.processor;
+package us.deans.opp.processor;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -7,20 +7,19 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import us.deans.raven.processor.Processor;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class OppProcessor_Mongo_Wildfly implements Procesor{
+public class OppProcessor_01 implements Processor {
 
     private final List<OppPost> postList;
-    Logger logger = LoggerFactory.getLogger(this.getClass());
-    // private final String cloud_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-    private final String local_db = "mongodb://localhost:27017";
 
-    public OppProcessor_Mongo_Wildfly(List<OppPost> postList) {
+    Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    public OppProcessor_01(List<OppPost> postList) {
         this.postList = postList;
-        logger.info("instantiating processor...");
+        logger.info("processor initialized.");
     }
 
     @Override
@@ -31,9 +30,15 @@ public class OppProcessor_Mongo_Wildfly implements Procesor{
     }
 
     @Override
-    public void persist() {
+    public void persist() throws Exception {
 
-        try (MongoClient mongoClient = MongoClients.create(local_db)) {
+        logger.info("processor.persist()...");
+
+        // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+        String local_content_db = "mongodb://localhost:27017";
+
+        try (MongoClient mongoClient = MongoClients.create(local_content_db)) {
+
             MongoDatabase database = mongoClient.getDatabase("Raven-1");
             MongoCollection<Document> collection = database.getCollection("posts");
 
@@ -52,7 +57,7 @@ public class OppProcessor_Mongo_Wildfly implements Procesor{
                 postData.add(record);
             }
             collection.insertMany(postData);
-            logger.info(">>> " + postData.size() + "post records inserted...");
+            logger.info(">>> " + postData.size() + " post records inserted...");
         }
 
     }
