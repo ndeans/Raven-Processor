@@ -11,7 +11,12 @@ import us.deans.raven.processor.Processor;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
+
+
 public class OppProcessor_01 implements Processor {
+
 
     private final List<OppPost> postList;
 
@@ -21,6 +26,18 @@ public class OppProcessor_01 implements Processor {
         this.postList = postList;
         logger.info("processor initialized.");
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public void log() {
@@ -34,10 +51,26 @@ public class OppProcessor_01 implements Processor {
 
         logger.info("processor.persist()...");
 
+        /*
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+        */
+
         // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
         String local_content_db = "mongodb://localhost:27017";
 
-        try (MongoClient mongoClient = MongoClients.create(local_content_db)) {
+           try (MongoClient mongoClient = MongoClients.create(local_content_db)) {
 
             MongoDatabase database = mongoClient.getDatabase("Raven-1");
             MongoCollection<Document> collection = database.getCollection("posts");

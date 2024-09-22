@@ -1,7 +1,9 @@
 package us.deans.raven.processor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.PreparedStatement;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -9,16 +11,11 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-// import org.mariadb.jdbc.Connection;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class OppProcessor_02 implements Processor {
 
@@ -27,12 +24,6 @@ public class OppProcessor_02 implements Processor {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
-/*
-    public OppProcessor_02(List<RvnPost> postList) {
-        this.postList = postList;
-        logger.info("instantiating processor...");
-    }
-*/
     public OppProcessor_02(RvnImport rvnImport) {
         this.jobDetails = new RvnJob();
         this.jobDetails.setJob_id(1);
@@ -40,16 +31,14 @@ public class OppProcessor_02 implements Processor {
         this.jobDetails.setTopic_id(rvnImport.getTopic_id());
         this.jobDetails.setTitle(rvnImport.getTopic_title());
         this.jobDetails.setReport_type(rvnImport.getReport_type());
-        this.postList = rvnImport.getPostList();
+        this.postList = rvnImport.getPost_data();
         logger.info("processor initialized.");
+        logger.info("postList contains : " + this.postList.size() + " ");
     }
 
     @Override
     public void log() {
-
-        for (RvnPost post: this.postList) {
-            logger.info("record: " + post.printRecord() + "\n");
-        }
+        logger.info(jobDetails.getTitle());
     }
 
     @Override
@@ -73,6 +62,7 @@ public class OppProcessor_02 implements Processor {
         }
 
         // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
         String local_content_db = "mongodb://localhost:27017";
 
         try (MongoClient mongoClient = MongoClients.create(local_content_db)) {
@@ -97,6 +87,5 @@ public class OppProcessor_02 implements Processor {
             collection.insertMany(postData);
             logger.info(">>> " + postData.size() + "post records inserted...");
         }
-
     }
 }
