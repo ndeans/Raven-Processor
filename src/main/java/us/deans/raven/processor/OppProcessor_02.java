@@ -32,6 +32,8 @@ public class OppProcessor_02 implements Processor {
         this.jobDetails.setTitle(rvnImport.getTopic_title());
         this.jobDetails.setReport_type(rvnImport.getReport_type());
         this.postList = rvnImport.getPost_data();
+        this.jobDetails.setPost_count(postList.size());
+
         logger.info("processor initialized.");
         logger.info("postList contains : " + this.postList.size() + " ");
     }
@@ -44,24 +46,21 @@ public class OppProcessor_02 implements Processor {
     @Override
     public void persist() throws Exception {
 
-        logger.info("processor.persist()...");
+        logger.info("processor.persist(). " + postList.size() + " in the post list.");
 
         String local_data_db = "jdbc:mariadb://vortex:3306/raven_1";
         Connection maria_connection = DriverManager.getConnection(local_data_db,"bambam","bambam");
-
-        String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type) VALUES (?,?,?)";
-
+        String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count) VALUES (?,?,?,?)";
         try (PreparedStatement statement = maria_connection.prepareStatement(sql_insert_job_data) ) {
             statement.setInt(1, jobDetails.getTopic_id());
             statement.setString(2,jobDetails.getTitle());
             statement.setInt(3, jobDetails.getReport_type());
+            statement.setInt(4, jobDetails.getPost_count());
             int rowsInserted = statement.executeUpdate();
             logger.info(rowsInserted + " rows added to metadata.");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
         String local_content_db = "mongodb://localhost:27017";
 
@@ -85,7 +84,7 @@ public class OppProcessor_02 implements Processor {
                 postData.add(record);
             }
             collection.insertMany(postData);
-            logger.info(">>> " + postData.size() + "post records inserted...");
+            logger.info(">>> " + postData.size() + " post records inserted...");
         }
     }
 }
