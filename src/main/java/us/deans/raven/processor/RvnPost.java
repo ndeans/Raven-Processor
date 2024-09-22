@@ -1,6 +1,6 @@
 package us.deans.raven.processor;
 
-public class OppPost {
+public class RvnPost {
 
     private String id;
     private String author;
