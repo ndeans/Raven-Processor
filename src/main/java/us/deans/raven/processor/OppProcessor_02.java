@@ -1,9 +1,6 @@
 package us.deans.raven.processor;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
+import java.sql.*;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -21,6 +18,8 @@ public class OppProcessor_02 implements Processor {
 
     private final RvnJob jobDetails;
     private final List<RvnPost> postList;
+    private long upload_id = 0;
+    private int post_count = 0;
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -32,8 +31,9 @@ public class OppProcessor_02 implements Processor {
         this.jobDetails.setTitle(rvnImport.getTopic_title());
         this.jobDetails.setReport_type(rvnImport.getReport_type());
         this.postList = rvnImport.getPost_data();
-        logger.info("processor initialized.");
-        logger.info("postList contains : " + this.postList.size() + " ");
+        this.post_count = postList.size();
+        logger.debug("processor initialized.");
+        logger.debug("postList contains : " + post_count + " posts.");
     }
 
     @Override
@@ -43,24 +43,45 @@ public class OppProcessor_02 implements Processor {
 
     @Override
     public void persist() throws Exception {
+        logger.info("persisting...");
+        processMetaData();
+        processPostData();
+    }
 
-        logger.info("processor.persist()...");
+    public void upload() throws Exception {
+        logger.info("persisting...");
+        processMetaData();
+        processPostData();
+    }
+
+    private void processMetaData() throws Exception{
 
         String local_data_db = "jdbc:mariadb://vortex:3306/raven_1";
         Connection maria_connection = DriverManager.getConnection(local_data_db,"bambam","bambam");
+        String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count) VALUES (?,?,?,?)";
 
-        String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type) VALUES (?,?,?)";
-
-        try (PreparedStatement statement = maria_connection.prepareStatement(sql_insert_job_data) ) {
+        try (PreparedStatement statement = maria_connection.prepareStatement(sql_insert_job_data, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, jobDetails.getTopic_id());
             statement.setString(2,jobDetails.getTitle());
             statement.setInt(3, jobDetails.getReport_type());
+            statement.setInt(4, post_count);
             int rowsInserted = statement.executeUpdate();
-            logger.info(rowsInserted + " rows added to metadata.");
+            if (rowsInserted > 0) {
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        upload_id = generatedKeys.getLong(1);
+                        statement.setString(4, String.valueOf(upload_id));
+                        logger.info("added upload record " + upload_id);
+                    }
+                }
+            }
+            // logger.info(rowsInserted + " rows added to metadata.");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private void processPostData() throws Exception {
         // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
         String local_content_db = "mongodb://localhost:27017";
@@ -75,13 +96,15 @@ public class OppProcessor_02 implements Processor {
             for (RvnPost post : this.postList) {
                 int idx = post.getLink().lastIndexOf("=");
                 String topic_id = post.getLink().substring(idx + 1);
+                String uploadID = String.valueOf(upload_id);
                 Document record = new Document()
                         .append("post_id", post.getId())
                         .append("author", post.getAuthor())
                         .append("head", post.getHead())
                         .append("link", post.getLink())
                         .append("text", post.getText())
-                        .append("topic_id", topic_id);
+                        .append("topic_id", topic_id)
+                        .append("upload_id", uploadID);
                 postData.add(record);
             }
             collection.insertMany(postData);
