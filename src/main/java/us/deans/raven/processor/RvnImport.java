@@ -42,8 +42,12 @@ public class RvnImport {
     public void setPost_data(List<RvnPost> post_data) { this.post_data = post_data; }
 
     public String printJob() {
-        // return "topic_id: " + this.topic_id + ", topic_title: " + this.topic_title + ", report_type: " + this.report_type + ", + " + this.post_list.size() + " post records.";
-        return "topic_id: " + this.topic_id + ", topic_title: " + this.topic_title + ", report_type: " + this.report_type + ", " + this.post_data.size() + " post records.";
+        return "topic_id: " + this.topic_id + ", topic_title: " + this.topic_title + ", report_type: " + this.report_type + ", post_list: {" + this.getPostCount() + " post records}";
+        // return "topic_id: " + this.topic_id + ", topic_title: " + this.topic_title + ", report_type: " + this.report_type + ".";
     }
+    public int getPostCount() {
+        return post_data.size();
+    }
+
 }
 
