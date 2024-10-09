@@ -55,11 +55,9 @@ public class OppProcessor_02 implements Processor {
     }
 
     private void processMetaData() throws Exception{
-
         String local_data_db = "jdbc:mariadb://vortex:3306/raven_1";
         Connection maria_connection = DriverManager.getConnection(local_data_db,"bambam","bambam");
         String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count) VALUES (?,?,?,?)";
-
         try (PreparedStatement statement = maria_connection.prepareStatement(sql_insert_job_data, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, jobDetails.getTopic_id());
             statement.setString(2,jobDetails.getTitle());
@@ -83,7 +81,6 @@ public class OppProcessor_02 implements Processor {
 
     private void processPostData() throws Exception {
         // private final String cloud_content_db = "mongodb+srv://ncdeans:Qelar9E8DfXgZrrs@cluster0.ueelqzu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
         String local_content_db = "mongodb://localhost:27017";
 
         try (MongoClient mongoClient = MongoClients.create(local_content_db)) {
@@ -108,7 +105,7 @@ public class OppProcessor_02 implements Processor {
                 postData.add(record);
             }
             collection.insertMany(postData);
-            logger.info(">>> " + postData.size() + "post records inserted...");
+            logger.info(">>> " + postData.size() + " post records inserted...");
         }
     }
 }

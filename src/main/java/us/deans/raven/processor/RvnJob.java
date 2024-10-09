@@ -5,6 +5,7 @@ public class RvnJob {
     private String created_at;
     private Integer topic_id;
     private String title;
+    private Integer post_count;
     private Integer report_type;
 
     public Integer getJob_id() { return job_id; }
@@ -28,4 +29,7 @@ public class RvnJob {
     public void setReport_type(Integer report_type) {
         this.report_type = report_type;
     }
+
+    public Integer getPost_count() { return post_count; }
+    public void setPost_count(Integer post_count) { this.post_count = post_count; }
 }
