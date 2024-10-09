@@ -8,6 +8,7 @@ public class RvnPost {
     private String html;
     private String link;
     private String text;
+    private long upload_id;
 
     public String getId() {
         return id;
@@ -57,9 +58,12 @@ public class RvnPost {
         this.text = text;
     }
 
-    public String printRecord() {
-        return "id: " + this.id + ", author: " + this.author + ", time: " + this.head + ", text: " + this.text + ", link: " + this.link;
-    }
+    public long getUpload_id() { return upload_id; }
 
+    public void setUpload_id(long upload_id) { this.upload_id = upload_id; }
+
+    public String printRecord() {
+        return "id: " + this.id + ", author: " + this.author + ", time: " + this.head + ", text: " + this.text + ", link: " + this.link + "upload_id: " + upload_id;
+    }
 
 }
