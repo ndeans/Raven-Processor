@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Mongo_DAO {
+public class MongoDao {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 

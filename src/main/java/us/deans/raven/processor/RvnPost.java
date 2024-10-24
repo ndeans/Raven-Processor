@@ -9,6 +9,7 @@ public class RvnPost {
     private String link;
     private String text;
     private long upload_id;
+    private Boolean selected;
 
     public String getId() {
         return id;
@@ -59,8 +60,10 @@ public class RvnPost {
     }
 
     public long getUpload_id() { return upload_id; }
-
     public void setUpload_id(long upload_id) { this.upload_id = upload_id; }
+
+    public Boolean getSelected() { return selected; }
+    public void setSelected(Boolean selected) { this.selected = selected; }
 
     public String printRecord() {
         return "id: " + this.id + ", author: " + this.author + ", time: " + this.head + ", text: " + this.text + ", link: " + this.link + "upload_id: " + upload_id;
