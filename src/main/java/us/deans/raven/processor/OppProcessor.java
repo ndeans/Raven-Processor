@@ -9,10 +9,9 @@ public class OppProcessor implements Processor {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
     Maria_DAO maria_dao = new Maria_DAO();
-    MongoDao mongo_dao = new MongoDao();
+    MongoDao mongo_dao = new MongoDao(); //MongoDao.getInstance();
     private final RvnJob jobDetails;
     private final List<RvnPost> postList;
-
 
     public OppProcessor(RvnImport rvnImport) {
         this.postList = rvnImport.getPost_data();
