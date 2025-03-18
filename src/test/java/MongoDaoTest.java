@@ -48,9 +48,19 @@ public class MongoDaoTest {
 
     @Test
     public void test_getPostList() {
-        assert true;
+
+        List<RvnPost> postList = new ArrayList<>();
+        long upload_id = 83;
+        MongoDao mongoDao = new MongoDao();
+        try {
+            postList = mongoDao.getPostList(upload_id);
+            assertFalse(postList.isEmpty());
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } finally {
+            mongoDao.close();
+        }
+
     }
-
-
 
 }

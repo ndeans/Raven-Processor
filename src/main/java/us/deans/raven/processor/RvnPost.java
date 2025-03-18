@@ -8,13 +8,13 @@ public class RvnPost {
     private String html;
     private String link;
     private String text;
+    private String topic_id;
     private long upload_id;
     private Boolean selected;
 
     public String getId() {
         return id;
     }
-
     public void setId(String id) {
         this.id = id;
     }
@@ -22,7 +22,6 @@ public class RvnPost {
     public String getAuthor() {
         return author;
     }
-
     public void setAuthor(String author) {
         this.author = author;
     }
@@ -30,7 +29,6 @@ public class RvnPost {
     public String getHead() {
         return head;
     }
-
     public void setHead(String head) {
         this.head = head;
     }
@@ -38,7 +36,6 @@ public class RvnPost {
     public String getHtml() {
         return html;
     }
-
     public void setHtml(String html) {
         this.html = html;
     }
@@ -46,7 +43,6 @@ public class RvnPost {
     public String getLink() {
         return link;
     }
-
     public void setLink(String link) {
         this.link = link;
     }
@@ -54,10 +50,12 @@ public class RvnPost {
     public String getText() {
         return text;
     }
-
     public void setText(String text) {
         this.text = text;
     }
+
+    public String getTopic_id() { return topic_id; }
+    public void setTopic_id(String topic_id) { this.topic_id = topic_id; }
 
     public long getUpload_id() { return upload_id; }
     public void setUpload_id(long upload_id) { this.upload_id = upload_id; }

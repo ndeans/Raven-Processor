@@ -1,6 +1,7 @@
 package us.deans.raven.processor;
 
 import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 
 import org.slf4j.Logger;
@@ -16,7 +17,6 @@ public class MongoDao {
     private final String local_content_db = "mongodb://localhost:27017";
     private String databaseName = "Raven-1";
     private String collectionName = "posts";
-
     MongoClient mongoClient;
     private final MongoDatabase database;
     private final MongoCollection<Document> collection;
@@ -55,18 +55,27 @@ public class MongoDao {
         logger.info(">>> " + postData.size() + " post records inserted...");
     }
 
-    public List<Document> getPostList(int upload_id) throws Exception {
+    public List<RvnPost> getPostList(long upload_id) throws Exception {
+        logger.info("Getting list for upload_id = {}", upload_id);
+        // logger.info("MongoDB connection state: {}", mongoClient.toString());
+        List<RvnPost> postList = new ArrayList<>();
+        String strUploadId = upload_id + "";
 
-        logger.info("getting list for upload_id = " + upload_id);
-        logger.info("MongoDB connection state: " + mongoClient);
-
-        List<Document> postList = new ArrayList<>();
-        try (MongoCursor<Document> cursor = collection.find(new Document("upload_id", upload_id)).iterator() ) {
+        try (MongoCursor<Document> cursor = collection.find(Filters.eq("upload_id", strUploadId)).iterator()) {
             while (cursor.hasNext()) {
-                postList.add(cursor.next());
+                Document doc = (Document) cursor.next();
+                RvnPost post = new RvnPost();
+                post.setId(doc.getString("post_id"));
+                post.setAuthor(doc.getString("author"));
+                post.setHead(doc.getString("head"));
+                post.setLink(doc.getString("link"));
+                post.setText(doc.getString("text"));
+                post.setTopic_id(doc.getString("topic_id"));
+                post.setUpload_id(upload_id);
+                // logger.info("...");
+                postList.add(post);
             }
         }
         return postList;
     }
-
 }
