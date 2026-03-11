@@ -38,8 +38,15 @@ public class MongoDao {
     public void processPostData(long upload_id, List<RvnPost> postList) throws Exception {
         List<Document> postData = new ArrayList<>();
         for (RvnPost post : postList) {
-            int idx = post.getLink().lastIndexOf("=");
-            String topic_id = post.getLink().substring(idx + 1);
+            String topic_id = "";
+            if (post.getLink() != null && post.getLink().contains("t=")) {
+                int idx = post.getLink().lastIndexOf("t=");
+                topic_id = post.getLink().substring(idx + 2);
+            } else if (post.getLink() != null && post.getLink().contains("=")) {
+                int idx = post.getLink().lastIndexOf("=");
+                topic_id = post.getLink().substring(idx + 1);
+            }
+            
             String uploadID = String.valueOf(upload_id);
             Document record = new Document()
                     .append("post_id", post.getId())
@@ -47,32 +54,34 @@ public class MongoDao {
                     .append("head", post.getHead())
                     .append("link", post.getLink())
                     .append("text", post.getText())
+                    .append("html", post.getHtml())
                     .append("topic_id", topic_id)
                     .append("upload_id", uploadID);
             postData.add(record);
         }
-        collection.insertMany(postData);
-        logger.info(">>> " + postData.size() + " post records inserted...");
+        if (!postData.isEmpty()) {
+            collection.insertMany(postData);
+            logger.info(">>> " + postData.size() + " post records inserted...");
+        }
     }
 
     public List<RvnPost> getPostList(long upload_id) throws Exception {
         logger.info("Getting list for upload_id = {}", upload_id);
-        // logger.info("MongoDB connection state: {}", mongoClient.toString());
         List<RvnPost> postList = new ArrayList<>();
-        String strUploadId = upload_id + "";
+        String strUploadId = String.valueOf(upload_id);
 
         try (MongoCursor<Document> cursor = collection.find(Filters.eq("upload_id", strUploadId)).iterator()) {
             while (cursor.hasNext()) {
-                Document doc = (Document) cursor.next();
+                Document doc = cursor.next();
                 RvnPost post = new RvnPost();
                 post.setId(doc.getString("post_id"));
                 post.setAuthor(doc.getString("author"));
                 post.setHead(doc.getString("head"));
                 post.setLink(doc.getString("link"));
                 post.setText(doc.getString("text"));
+                post.setHtml(doc.getString("html"));
                 post.setTopic_id(doc.getString("topic_id"));
                 post.setUpload_id(upload_id);
-                // logger.info("...");
                 postList.add(post);
             }
         }
