@@ -46,7 +46,7 @@ public class MongoDao {
                 int idx = post.getLink().lastIndexOf("=");
                 topic_id = post.getLink().substring(idx + 1);
             }
-            
+
             String uploadID = String.valueOf(upload_id);
             Document record = new Document()
                     .append("post_id", post.getId())
@@ -86,5 +86,14 @@ public class MongoDao {
             }
         }
         return postList;
+    }
+
+    public long deletePosts(long upload_id) throws Exception {
+        String strUploadId = String.valueOf(upload_id);
+        logger.info("Deleting posts for upload_id = {}", strUploadId);
+        com.mongodb.client.result.DeleteResult result = collection.deleteMany(Filters.eq("upload_id", strUploadId));
+        long deletedCount = result.getDeletedCount();
+        logger.info("Deleted {} post records", deletedCount);
+        return deletedCount;
     }
 }

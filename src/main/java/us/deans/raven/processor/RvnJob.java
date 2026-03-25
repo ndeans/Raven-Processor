@@ -8,29 +8,78 @@ public class RvnJob {
     private Integer post_count;
     private Integer report_type;
     private Boolean selected;
+    private Boolean pruned;
+    private String pruned_at;
 
-    public Boolean getSelected() { return selected; }
-    public void setSelected(Boolean selected) { this.selected = selected; }
+    public Boolean getPruned() {
+        return pruned;
+    }
 
-    public Integer getJob_id() { return job_id; }
-    public void setJob_id(Integer job_id) { this.job_id = job_id; }
+    public void setPruned(Boolean pruned) {
+        this.pruned = pruned;
+    }
 
-    public String getCreated_at() { return created_at; }
-    public void setCreated_at(String created_at) { this.created_at = created_at; }
+    public String getPruned_at() {
+        return pruned_at;
+    }
 
-    public Integer getTopic_id() { return topic_id; }
-    public void setTopic_id(Integer topic_id) { this.topic_id = topic_id; }
+    public void setPruned_at(String pruned_at) {
+        this.pruned_at = pruned_at;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public Boolean getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Boolean selected) {
+        this.selected = selected;
+    }
+
+    public Integer getJob_id() {
+        return job_id;
+    }
+
+    public void setJob_id(Integer job_id) {
+        this.job_id = job_id;
+    }
+
+    public String getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(String created_at) {
+        this.created_at = created_at;
+    }
+
+    public Integer getTopic_id() {
+        return topic_id;
+    }
+
+    public void setTopic_id(Integer topic_id) {
+        this.topic_id = topic_id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public Integer getReport_type() {
         return report_type;
     }
+
     public void setReport_type(Integer report_type) {
         this.report_type = report_type;
     }
 
-    public Integer getPost_count() { return post_count; }
-    public void setPost_count(Integer post_count) { this.post_count = post_count; }
+    public Integer getPost_count() {
+        return post_count;
+    }
+
+    public void setPost_count(Integer post_count) {
+        this.post_count = post_count;
+    }
 }
