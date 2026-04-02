@@ -2,6 +2,7 @@ package us.deans.raven.processor;
 
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import org.bson.Document;
 
 import org.slf4j.Logger;
@@ -95,5 +96,35 @@ public class MongoDao {
         long deletedCount = result.getDeletedCount();
         logger.info("Deleted {} post records", deletedCount);
         return deletedCount;
+    }
+
+    /**
+     * R7: Returns all posts for a given upload_id as R7Post objects.
+     * Fields returned: post_id, author, head, html, link.
+     * width and uplinkPostId are initialised to defaults (0 / null) by the R7Post
+     * constructor.
+     */
+    public List<R7Post> getPostsByUploadId(String uploadId) {
+        logger.info("R7: Loading posts for upload_id = {}", uploadId);
+        List<R7Post> posts = new ArrayList<>();
+        try (MongoCursor<Document> cursor = collection
+                .find(Filters.eq("upload_id", uploadId))
+                .projection(Projections.fields(
+                        Projections.include("post_id", "author", "head", "html", "link"),
+                        Projections.excludeId()))
+                .iterator()) {
+            while (cursor.hasNext()) {
+                Document doc = cursor.next();
+                R7Post post = new R7Post();
+                post.setPostId(doc.getString("post_id"));
+                post.setAuthor(doc.getString("author"));
+                post.setHead(doc.getString("head"));
+                post.setHtml(doc.getString("html"));
+                post.setLink(doc.getString("link"));
+                posts.add(post);
+            }
+        }
+        logger.info("R7: Loaded {} posts", posts.size());
+        return posts;
     }
 }
