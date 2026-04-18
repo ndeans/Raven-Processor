@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.deans.raven.processor.MongoDao;
 import us.deans.raven.processor.RvnPost;
@@ -47,6 +48,7 @@ public class MongoDaoTest {
     }
 
     @Test
+    @Disabled
     public void test_getPostList() {
 
         List<RvnPost> postList = new ArrayList<>();

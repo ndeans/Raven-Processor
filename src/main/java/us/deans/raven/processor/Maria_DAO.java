@@ -3,6 +3,7 @@ package us.deans.raven.processor;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +109,37 @@ public class Maria_DAO {
             throw e;
         }
         return ids;
+    }
+
+    public Set<String> getAllUploadIds() throws Exception {
+        String sql = "SELECT upload_id FROM uploads";
+        Set<String> ids = new java.util.LinkedHashSet<>();
+        try (Connection conn = openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                ids.add(String.valueOf(rs.getLong("upload_id")));
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching upload_ids from MariaDB", e);
+            throw e;
+        }
+        return ids;
+    }
+
+    public long getPostCountSum() throws Exception {
+        String sql = "SELECT COALESCE(SUM(post_count), 0) FROM uploads";
+        try (Connection conn = openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+            return 0L;
+        } catch (Exception e) {
+            logger.error("Error fetching post count sum from MariaDB", e);
+            throw e;
+        }
     }
 
     public void deleteUpload(long uploadId) throws Exception {

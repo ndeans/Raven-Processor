@@ -1,6 +1,8 @@
 package us.deans.raven.processor;
 
 import com.mongodb.client.*;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import org.bson.Document;
@@ -9,7 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MongoDao {
 
@@ -96,6 +102,29 @@ public class MongoDao {
         long deletedCount = result.getDeletedCount();
         logger.info("Deleted {} post records", deletedCount);
         return deletedCount;
+    }
+
+    public long getPostDocumentCount() {
+        try {
+            return collection.countDocuments(new Document());
+        } catch (Exception e) {
+            logger.error("Error counting documents in MongoDB posts collection", e);
+            throw e;
+        }
+    }
+
+    public Map<String, Long> findOrphanUploadIds(Set<String> knownIds) {
+        Map<String, Long> orphans = new LinkedHashMap<>();
+        try {
+            collection.aggregate(Arrays.asList(
+                Aggregates.group("$upload_id", Accumulators.sum("count", 1)),
+                Aggregates.match(Filters.nin("_id", knownIds))
+            )).forEach(doc -> orphans.put(doc.getString("_id"), ((Number) doc.get("count")).longValue()));
+        } catch (Exception e) {
+            logger.error("Error finding orphan upload_ids in MongoDB", e);
+            throw e;
+        }
+        return orphans;
     }
 
     /**
