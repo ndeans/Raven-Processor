@@ -10,6 +10,7 @@ import java.util.List;
 public class R7Conversation {
 
     private final List<R7Post> posts; // ordered: root post first, leaf post last
+    private R7Post contextPost;       // post quoted by the root, if resolvable
 
     public R7Conversation(List<R7Post> posts) {
         this.posts = List.copyOf(posts);
@@ -21,5 +22,13 @@ public class R7Conversation {
 
     public int length() {
         return posts.size();
+    }
+
+    public R7Post getContextPost() {
+        return contextPost;
+    }
+
+    public void setContextPost(R7Post contextPost) {
+        this.contextPost = contextPost;
     }
 }

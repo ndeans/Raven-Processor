@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,6 +81,14 @@ public class R7Service {
         }
         log.info("R7 Phase 4 complete — {} conversation(s) built", results.size());
 
+        // Phase 5 — Context Posts
+        for (R7Conversation conv : results) {
+            if (!conv.getPosts().isEmpty()) {
+                conv.setContextPost(findContextPost(conv.getPosts().get(0), posts));
+            }
+        }
+        log.info("R7 Phase 5 complete — context posts resolved");
+
         return results;
     }
 
@@ -102,12 +111,8 @@ public class R7Service {
                 continue;
             }
 
-            // Extract the quoted author from the outer div's own text
-            String outerText = outerDiv.ownText().trim();
-            if (!outerText.endsWith("wrote:")) {
-                continue; // unexpected format — skip
-            }
-            String quotedAuthor = outerText.substring(0, outerText.length() - "wrote:".length()).trim();
+            // Extract the quoted author from the outer div
+            String quotedAuthor = extractQuotedAuthor(outerDiv);
             if (quotedAuthor.isBlank()) {
                 log.warn("R7 Phase 2: blank quoted author in post_id={} upload_id={}", post.getPostId(), uploadId);
                 continue;
@@ -165,6 +170,54 @@ public class R7Service {
                 .limit(FINGERPRINT_WORDS)
                 .map(String::toLowerCase)
                 .collect(Collectors.joining(" "));
+    }
+
+    /**
+     * Extracts the quoted author name from a div.smalltext element.
+     * Handles two OPP renderings: plain text ("Author wrote:") and bold
+     * ("<strong>Author</strong> wrote:") used when the author is the logged-in account.
+     */
+    private static String extractQuotedAuthor(Element outerDiv) {
+        String outerText = outerDiv.ownText().trim();
+        if (!outerText.endsWith("wrote:")) return "";
+        if (outerText.equals("wrote:")) {
+            // Author name is wrapped in a child element (e.g. <strong>)
+            Element strong = outerDiv.selectFirst("strong");
+            return strong != null ? strong.text().trim() : "";
+        }
+        return outerText.substring(0, outerText.length() - "wrote:".length()).trim();
+    }
+
+    /**
+     * Finds the post that the given root post is quoting, using a position-based
+     * fallback: the most recent post by the quoted author whose post_id is less
+     * than the root's post_id.
+     */
+    private R7Post findContextPost(R7Post rootPost, List<R7Post> allPosts) {
+        if (rootPost.getHtml() == null || rootPost.getHtml().isBlank()) return null;
+
+        Document doc = Jsoup.parse(rootPost.getHtml());
+        Element outerDiv = doc.selectFirst("div.smalltext");
+        if (outerDiv == null) return null;
+
+        String quotedAuthor = extractQuotedAuthor(outerDiv);
+        if (quotedAuthor.isBlank()) return null;
+
+        long rootPostId;
+        try { rootPostId = Long.parseLong(rootPost.getPostId()); }
+        catch (NumberFormatException e) { return null; }
+
+        return allPosts.stream()
+                .filter(p -> quotedAuthor.equals(p.getAuthor()) && p.getPostId() != null)
+                .filter(p -> {
+                    try { return Long.parseLong(p.getPostId()) < rootPostId; }
+                    catch (NumberFormatException e) { return false; }
+                })
+                .max(Comparator.comparingLong(p -> {
+                    try { return Long.parseLong(p.getPostId()); }
+                    catch (NumberFormatException e) { return Long.MIN_VALUE; }
+                }))
+                .orElse(null);
     }
 
     // -------------------------------------------------------------------------
