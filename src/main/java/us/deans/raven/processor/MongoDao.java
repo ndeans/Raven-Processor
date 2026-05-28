@@ -133,6 +133,22 @@ public class MongoDao {
      * width and uplinkPostId are initialised to defaults (0 / null) by the R7Post
      * constructor.
      */
+    public String getFirstAuthor(String uploadId) {
+        try (MongoCursor<Document> cursor = collection
+                .find(Filters.eq("upload_id", uploadId))
+                .sort(new Document("post_id", 1))
+                .limit(1)
+                .projection(Projections.fields(Projections.include("author"), Projections.excludeId()))
+                .iterator()) {
+            if (cursor.hasNext()) {
+                return cursor.next().getString("author");
+            }
+        } catch (Exception e) {
+            logger.error("Error getting first author for upload_id: {}", uploadId, e);
+        }
+        return "";
+    }
+
     public List<R7Post> getPostsByUploadId(String uploadId) {
         logger.info("R7: Loading posts for upload_id = {}", uploadId);
         List<R7Post> posts = new ArrayList<>();

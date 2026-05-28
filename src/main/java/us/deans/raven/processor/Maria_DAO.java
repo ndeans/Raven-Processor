@@ -14,7 +14,7 @@ public class Maria_DAO {
     Connection maria_connection;
 
     private final String local_data_db = "jdbc:mariadb://vortex:3306/raven_1";
-    private String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count) VALUES (?,?,?,?)";
+    private String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count, op_author) VALUES (?,?,?,?,?)";
     private String sql_get_job_list = "select * from uploads";
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -38,6 +38,7 @@ public class Maria_DAO {
             statement.setString(2, jobDetails.getTitle());
             statement.setInt(3, jobDetails.getReport_type());
             statement.setInt(4, jobDetails.getPost_count());
+            statement.setString(5, jobDetails.getOp_author());
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -70,6 +71,7 @@ public class Maria_DAO {
                 record.setTitle(rs.getString(4));
                 record.setReport_type(rs.getInt(5));
                 record.setPost_count(rs.getInt(6));
+                record.setOp_author(rs.getString("op_author"));
                 jobList.add(record);
             }
         } catch (SQLException e) {
@@ -140,6 +142,73 @@ public class Maria_DAO {
             logger.error("Error fetching post count sum from MariaDB", e);
             throw e;
         }
+    }
+
+    public void updateOpAuthor(long upload_id, String author) throws Exception {
+        String sql = "UPDATE uploads SET op_author = ? WHERE upload_id = ?";
+        try (Connection conn = openConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, author);
+            stmt.setLong(2, upload_id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error updating op_author for upload_id: {}", upload_id, e);
+            throw e;
+        }
+    }
+
+    public List<RvnJob> getFilteredUploads(String author, String keyword) throws Exception {
+        boolean hasAuthor = author != null && !author.isBlank();
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM uploads");
+        if (hasAuthor || hasKeyword) {
+            sql.append(" WHERE");
+            if (hasAuthor)  sql.append(" op_author = ?");
+            if (hasAuthor && hasKeyword) sql.append(" AND");
+            if (hasKeyword) sql.append(" topic_title LIKE ?");
+        }
+
+        List<RvnJob> jobList = new ArrayList<>();
+        try (Connection conn = openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (hasAuthor)  stmt.setString(idx++, author);
+            if (hasKeyword) stmt.setString(idx++, "%" + keyword + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    RvnJob record = new RvnJob();
+                    record.setJob_id(rs.getInt(1));
+                    record.setCreated_at(rs.getString(2));
+                    record.setTopic_id(rs.getInt(3));
+                    record.setTitle(rs.getString(4));
+                    record.setReport_type(rs.getInt(5));
+                    record.setPost_count(rs.getInt(6));
+                    record.setOp_author(rs.getString("op_author"));
+                    jobList.add(record);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error in getFilteredUploads", e);
+            throw e;
+        }
+        return jobList;
+    }
+
+    public String getTopicTitle(long upload_id) throws Exception {
+        String sql = "SELECT topic_title FROM uploads WHERE upload_id = ?";
+        try (Connection conn = openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, upload_id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("topic_title");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error fetching topic_title for upload_id: {}", upload_id, e);
+            throw e;
+        }
+        return "";
     }
 
     public void deleteUpload(long uploadId) throws Exception {
