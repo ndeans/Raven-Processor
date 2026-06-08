@@ -1,6 +1,8 @@
 package us.deans.raven.processor;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Output data object for Operation R7 (Conversation Linking).
@@ -30,5 +32,18 @@ public class R7Conversation {
 
     public void setContextPost(R7Post contextPost) {
         this.contextPost = contextPost;
+    }
+
+    private static final int MAX_AUTHORS = 10; // move to config when framework exists
+
+    public String getAllAuthors() {
+        LinkedHashMap<String, Integer> authorMap = new LinkedHashMap<>();
+        for (R7Post post : posts) {
+            authorMap.merge(post.getAuthor(), 1, Integer::sum);
+        }
+        return authorMap.entrySet().stream()
+                .limit(MAX_AUTHORS)
+                .map(e -> e.getKey() + "-" + e.getValue())
+                .collect(Collectors.joining(", "));
     }
 }
