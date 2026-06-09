@@ -32,15 +32,22 @@ public class OppCurator implements Curator {
     }
 
 
-    public String getTopicId(long upload_id) throws Exception {
+    public String SgetTopicId(long upload_id) throws Exception {
         String returnVal = "";
         Maria_DAO mariaDao = new Maria_DAO();
         return returnVal;
     }
 
+    @Override
     public String getTopicTitle(long upload_id) throws Exception {
-        String returnVal = "";
-        return returnVal;
+        Maria_DAO mariaDao = new Maria_DAO();
+        return mariaDao.getTopicTitle(upload_id);
+    }
+
+    @Override
+    public List<RvnJob> getFilteredUploads(String author, String keyword) throws Exception {
+        Maria_DAO mariaDao = new Maria_DAO();
+        return mariaDao.getFilteredUploads(author, keyword);
     }
 
 

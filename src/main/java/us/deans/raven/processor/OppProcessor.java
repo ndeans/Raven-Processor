@@ -2,6 +2,7 @@ package us.deans.raven.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -29,6 +30,11 @@ public class OppProcessor implements Processor {
     // This is where I want to add a transaction structure
     @Override
     public void persist() throws Exception {
+        String opAuthor = postList.stream()
+                .min(Comparator.comparingLong(p -> Long.parseLong(p.getId())))
+                .map(RvnPost::getAuthor)
+                .orElse("");
+        jobDetails.setOp_author(opAuthor);
         long upload_id = maria_dao.processMetaData(jobDetails);
         mongo_dao.processPostData(upload_id, postList);
     }

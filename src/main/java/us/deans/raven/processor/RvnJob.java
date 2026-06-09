@@ -10,6 +10,7 @@ public class RvnJob {
     private Boolean selected;
     private Boolean pruned;
     private String pruned_at;
+    private String op_author;
 
     public Boolean getPruned() {
         return pruned;
@@ -81,5 +82,13 @@ public class RvnJob {
 
     public void setPost_count(Integer post_count) {
         this.post_count = post_count;
+    }
+
+    public String getOp_author() {
+        return op_author;
+    }
+
+    public void setOp_author(String op_author) {
+        this.op_author = op_author;
     }
 }
