@@ -6,6 +6,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,6 +148,42 @@ public class MongoDao {
             logger.error("Error getting first author for upload_id: {}", uploadId, e);
         }
         return "";
+    }
+
+    public List<RvnPost> getFilteredPosts(long uploadId, String author, String keyword) {
+        String strUploadId = String.valueOf(uploadId);
+        List<Bson> filters = new ArrayList<>();
+        filters.add(Filters.eq("upload_id", strUploadId));
+
+        if (author != null && !author.trim().isEmpty()) {
+            filters.add(Filters.eq("author", author.trim()));
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            filters.add(Filters.regex("text", keyword.trim(), "i"));
+        }
+
+        List<RvnPost> postList = new ArrayList<>();
+        try (MongoCursor<Document> cursor = collection
+                .find(Filters.and(filters))
+                .sort(new Document("post_id", 1))
+                .iterator()) {
+            while (cursor.hasNext()) {
+                Document doc = cursor.next();
+                RvnPost post = new RvnPost();
+                post.setId(doc.getString("post_id"));
+                post.setAuthor(doc.getString("author"));
+                post.setHead(doc.getString("head"));
+                post.setLink(doc.getString("link"));
+                post.setText(doc.getString("text"));
+                post.setHtml(doc.getString("html"));
+                post.setTopic_id(doc.getString("topic_id"));
+                post.setUpload_id(uploadId);
+                postList.add(post);
+            }
+        } catch (Exception e) {
+            logger.error("Error filtering posts for upload_id={}: {}", strUploadId, e.getMessage());
+        }
+        return postList;
     }
 
     public List<R7Post> getPostsByUploadId(String uploadId) {

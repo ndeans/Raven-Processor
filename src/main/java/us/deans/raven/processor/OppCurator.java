@@ -50,6 +50,16 @@ public class OppCurator implements Curator {
         return mariaDao.getFilteredUploads(author, keyword);
     }
 
+    @Override
+    public List<RvnPost> getFilteredPosts(long uploadId, String author, String keyword) throws Exception {
+        MongoDao mongoDao = new MongoDao();
+        try {
+            return mongoDao.getFilteredPosts(uploadId, author, keyword);
+        } finally {
+            mongoDao.close();
+        }
+    }
+
 
 
 }
