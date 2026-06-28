@@ -13,7 +13,7 @@ public class Maria_DAO {
     private long upload_id = 0;
     Connection maria_connection;
 
-    private final String local_data_db = "jdbc:mariadb://vortex:3306/raven_1";
+    private final String local_data_db = "jdbc:mariadb://vortex:3306/raven_1?charset=utf8mb4";
     private String sql_insert_job_data = "insert into uploads(topic_id, topic_title, report_type, post_count, op_author) VALUES (?,?,?,?,?)";
     private String sql_get_job_list = "select * from uploads";
 
