@@ -189,7 +189,7 @@ public class MongoDao {
 
     /**
      * FE-21: Finds a single post by post_id, for resolving which upload a post
-     * belongs to. Does not assume uniqueness — if Operation M3 has not run
+     * belongs to. Does not assume uniqueness — if Operation M1 has not run
      * recently, the same post_id can theoretically exist under more than one
      * upload_id. Takes the first match (by natural Mongo ordering) and logs a
      * warning so the discrepancy is visible without failing the caller.
@@ -201,7 +201,7 @@ public class MongoDao {
             return Optional.empty();
         }
         if (matches.size() > 1) {
-            logger.warn("Duplicate post_id {} found across {} documents — Operation M3 may be overdue. Using first match.",
+            logger.warn("Duplicate post_id {} found across {} documents — Operation M1 may be overdue. Using first match.",
                     postId, matches.size());
         }
 
