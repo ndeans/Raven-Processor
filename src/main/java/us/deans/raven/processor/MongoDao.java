@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class MongoDao {
@@ -184,6 +185,37 @@ public class MongoDao {
             logger.error("Error filtering posts for upload_id={}: {}", strUploadId, e.getMessage());
         }
         return postList;
+    }
+
+    /**
+     * FE-21: Finds a single post by post_id, for resolving which upload a post
+     * belongs to. Does not assume uniqueness — if Operation M3 has not run
+     * recently, the same post_id can theoretically exist under more than one
+     * upload_id. Takes the first match (by natural Mongo ordering) and logs a
+     * warning so the discrepancy is visible without failing the caller.
+     */
+    public Optional<RvnPost> findPostById(String postId) {
+        List<Document> matches = collection.find(Filters.eq("post_id", postId)).into(new ArrayList<>());
+
+        if (matches.isEmpty()) {
+            return Optional.empty();
+        }
+        if (matches.size() > 1) {
+            logger.warn("Duplicate post_id {} found across {} documents — Operation M3 may be overdue. Using first match.",
+                    postId, matches.size());
+        }
+
+        Document doc = matches.get(0);
+        RvnPost post = new RvnPost();
+        post.setId(doc.getString("post_id"));
+        post.setAuthor(doc.getString("author"));
+        post.setHead(doc.getString("head"));
+        post.setLink(doc.getString("link"));
+        post.setText(doc.getString("text"));
+        post.setHtml(doc.getString("html"));
+        post.setTopic_id(doc.getString("topic_id"));
+        post.setUpload_id(Long.parseLong(doc.getString("upload_id")));
+        return Optional.of(post);
     }
 
     public List<R7Post> getPostsByUploadId(String uploadId) {

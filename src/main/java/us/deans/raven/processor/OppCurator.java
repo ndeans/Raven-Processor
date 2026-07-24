@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  *  This class is the curator for managing the uploaded data and supports the JSF application
@@ -60,6 +61,14 @@ public class OppCurator implements Curator {
         }
     }
 
-
+    @Override
+    public Optional<RvnPost> findPostById(String postId) throws Exception {
+        MongoDao mongoDao = new MongoDao();
+        try {
+            return mongoDao.findPostById(postId);
+        } finally {
+            mongoDao.close();
+        }
+    }
 
 }
