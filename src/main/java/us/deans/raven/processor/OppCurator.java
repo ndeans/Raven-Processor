@@ -46,9 +46,9 @@ public class OppCurator implements Curator {
     }
 
     @Override
-    public List<RvnJob> getFilteredUploads(String author, String keyword) throws Exception {
+    public List<RvnJob> getFilteredUploads(String author, String keyword, int offset, int limit) throws Exception {
         Maria_DAO mariaDao = new Maria_DAO();
-        return mariaDao.getFilteredUploads(author, keyword);
+        return mariaDao.getFilteredUploads(author, keyword, offset, limit);
     }
 
     @Override
