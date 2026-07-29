@@ -33,7 +33,7 @@ public class OppCurator implements Curator {
     }
 
 
-    public String SgetTopicId(long upload_id) throws Exception {
+    public String getTopicId(long upload_id) throws Exception {
         String returnVal = "";
         Maria_DAO mariaDao = new Maria_DAO();
         return returnVal;
