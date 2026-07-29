@@ -80,6 +80,33 @@ public class Maria_DAO {
         return jobList;
     }
 
+    public List<RvnJob> getMetaData(int offset, int limit) throws Exception {
+        String sql = "select * from uploads ORDER BY upload_time DESC LIMIT ? OFFSET ?";
+        List<RvnJob> jobList = new ArrayList<>();
+
+        try (Connection maria_connection = openConnection();
+             PreparedStatement statement = maria_connection.prepareStatement(sql)) {
+            statement.setInt(1, limit + 1);
+            statement.setInt(2, offset);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    RvnJob record = new RvnJob();
+                    record.setJob_id(rs.getInt(1));
+                    record.setCreated_at(rs.getString(2));
+                    record.setTopic_id(rs.getInt(3));
+                    record.setTitle(rs.getString(4));
+                    record.setReport_type(rs.getInt(5));
+                    record.setPost_count(rs.getInt(6));
+                    record.setOp_author(rs.getString("op_author"));
+                    jobList.add(record);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return jobList;
+    }
+
     public void markForPruning() throws Exception {
         String sql = "UPDATE uploads SET pruned = 1, pruned_at = NOW() WHERE pruned = 0 AND upload_id NOT IN ( " +
                 "  SELECT id FROM ( " +
@@ -156,7 +183,7 @@ public class Maria_DAO {
         }
     }
 
-    public List<RvnJob> getFilteredUploads(String author, String keyword) throws Exception {
+    public List<RvnJob> getFilteredUploads(String author, String keyword, int offset, int limit) throws Exception {
         boolean hasAuthor = author != null && !author.isBlank();
         boolean hasKeyword = keyword != null && !keyword.isBlank();
 
@@ -167,6 +194,7 @@ public class Maria_DAO {
             if (hasAuthor && hasKeyword) sql.append(" AND");
             if (hasKeyword) sql.append(" topic_title LIKE ?");
         }
+        sql.append(" ORDER BY upload_time DESC LIMIT ? OFFSET ?");
 
         List<RvnJob> jobList = new ArrayList<>();
         try (Connection conn = openConnection();
@@ -174,6 +202,8 @@ public class Maria_DAO {
             int idx = 1;
             if (hasAuthor)  stmt.setString(idx++, author);
             if (hasKeyword) stmt.setString(idx++, "%" + keyword + "%");
+            stmt.setInt(idx++, limit + 1);
+            stmt.setInt(idx++, offset);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     RvnJob record = new RvnJob();
