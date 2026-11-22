@@ -1,3 +1,5 @@
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.deans.raven.processor.MongoDao;
@@ -10,9 +12,35 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MongoDaoTest {
 
+    /**
+     * Sentinel upload_id for tests that write to the live MongoDB instance.
+     * MariaDB upload_ids are auto-increment and always positive, so a negative
+     * value can never collide with (or masquerade as) a real upload.
+     * Previously this test wrote under upload_id 7 and never cleaned up,
+     * which was the cause of PI-31's recurring orphans (see NI-19).
+     */
+    private static final long TEST_UPLOAD_ID = -1;
+
+    private MongoDao mongoDao;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        mongoDao = new MongoDao();
+        // Clear anything left behind by a previously interrupted run.
+        mongoDao.deletePosts(TEST_UPLOAD_ID);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        try {
+            mongoDao.deletePosts(TEST_UPLOAD_ID);
+        } finally {
+            mongoDao.close();
+        }
+    }
 
     @Test
-    public void test_processPostData() {
+    public void test_processPostData() throws Exception {
 
         List<RvnPost> postList = new ArrayList<>();
 
@@ -23,7 +51,7 @@ public class MongoDaoTest {
         post.setHtml("<br>Money printing Tom, money printing.<br>");
         post.setLink("https://www.onepoliticalplaza.com/tpr?p=5102456&t=335085");
         post.setText("Money printing Tom, money printing.");
-        post.setUpload_id(11);
+        post.setUpload_id(TEST_UPLOAD_ID);
         post.setSelected(false);
         postList.add(post);
 
@@ -34,17 +62,17 @@ public class MongoDaoTest {
         post.setHtml("<br>Money printing Tom, money printing.<br>");
         post.setLink("https://www.onepoliticalplaza.com/tpr?p=5102459&t=335085");
         post.setText("Look it up");
-        post.setUpload_id(11);
+        post.setUpload_id(TEST_UPLOAD_ID);
         post.setSelected(false);
         postList.add(post);
 
-        MongoDao mongo_dao = new MongoDao(); //MongoDao.getInstance();
-        try {
-           mongo_dao.processPostData(7, postList);
-        } catch (Exception e) {
-            fail(e.getMessage());
+        mongoDao.processPostData(TEST_UPLOAD_ID, postList);
+
+        List<RvnPost> stored = mongoDao.getPostList(TEST_UPLOAD_ID);
+        assertEquals(2, stored.size());
+        for (RvnPost p : stored) {
+            assertEquals("335085", p.getTopic_id(), "topic_id should be parsed from the link");
         }
-        assert true;
     }
 
     @Test
